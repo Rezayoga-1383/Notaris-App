@@ -205,7 +205,8 @@
             }
 
             .btn-detail,
-            .btn-edit{
+            .btn-edit,
+            .btn-delete{
                 width:100%;
                 text-align:center;
             }
@@ -214,6 +215,30 @@
             table.dataTable th{
                 white-space:normal;
             }
+        }
+
+        .btn-insentif{
+            background:#10b981;
+            color:white;
+            padding:6px 12px;
+            border-radius:8px;
+            border:none;
+            cursor:pointer;
+        }
+        .btn-insentif:hover{
+            background:#059669;
+        }
+
+        .btn-delete{
+            background:#ef4444;
+            color:white;
+            padding:6px 12px;
+            border-radius:8px;
+            border:none;
+            cursor:pointer;
+        }
+        .btn-delete:hover{
+            background:#dc2626;
         }
 
     </style>
@@ -246,9 +271,8 @@
                                 <th>Nama Nasabah</th>
                                 <th>Tanggal</th>
                                 <th>Bank</th>
-                                <th>Cabang</th>
-                                <th>Nominal</th>
                                 <th>Marketing</th>
+                                <th>Total Nominal</th>
                                 <th>Status</th>
                                 <th width="140">Aksi</th>
                             </tr>
@@ -268,12 +292,6 @@
                                     <div class="font-semibold">
                                         {{ $item->nama_nasabah }}
                                     </div>
-
-                                    @if($item->keterangan)
-                                        <small style="color:#64748b;">
-                                            {{ Str::limit($item->keterangan, 50) }}
-                                        </small>
-                                    @endif
                                 </td>
 
                                 <td>
@@ -285,15 +303,11 @@
                                 </td>
 
                                 <td>
-                                    {{ $item->bankBranch?->nama_cabang ?? '-' }}
+                                    {{ $item->user?->name}}
                                 </td>
 
                                 <td style="font-weight:600;color:#16a34a;">
-                                    Rp {{ number_format($item->nominal,0,',','.') }}
-                                </td>
-
-                                <td>
-                                    {{ $item->user?->name ?? '-' }}
+                                    Rp {{ number_format($item->details->sum('nominal'),0,',','.') }}
                                 </td>
 
                                 <td>
@@ -314,14 +328,43 @@
 
                                     <div class="aksi-mobile">
 
-                                        <a href="#"
-                                            class="btn-detail">
-                                            Detail
-                                        </a>
+                                    <button
+                                        type="button"
+                                        class="btn-detail"
+                                        data-nasabah="{{ $item->nama_nasabah }}"
+                                        data-bank="{{ $item->bank->nama_bank ?? '-' }}"
+                                        data-marketing="{{ $item->user?->name ?? '-' }}"
+                                        data-tanggal="{{ $item->tanggal_transaksi->format('d-m-Y') }}"
+                                        data-status="{{ $item->status }}"
+                                        data-keterangan-status="{{ $item->keterangan_status }}"
+                                        data-detail='@json($item->details)'>
+                                        Detail
+                                    </button>
+
+                                        @if($item->status == 'Lunas')
+                                            <button 
+                                                type="button"
+                                                class="btn-insentif"
+                                                data-id="{{ $item->id }}"
+                                                data-nasabah="{{ $item->nama_nasabah }}"
+
+                                                data-ao="{{ $item->insentif_ao }}"
+                                                data-sp="{{ $item->insentif_sp }}"
+                                                data-adk="{{ $item->insentif_adk }}"
+                                                data-pinca="{{ $item->insentif_pinca }}"
+                                                data-mpspb="{{ $item->insentif_mp_spb }}">
+
+                                                {{ $item->sudah_insentif ? 'Edit Insentif' : 'Input Insentif' }}
+                                            </button>
+                                        @endif
 
                                         <a href="#"
                                             class="btn-edit">
                                             Edit
+                                        </a>
+
+                                        <a href="#" class="btn-delete">
+                                            Hapus
                                         </a>
 
                                     </div>
@@ -346,6 +389,7 @@
 
     <script>
 
+        // Read data in Datatable
         $(document).ready(function () {
 
             $('#tableTransaksi').DataTable({
@@ -359,7 +403,7 @@
                 columnDefs: [
                     {
                         responsivePriority: 1,
-                        targets: [1,7,8]
+                        targets: [1,7]
                     },
                     {
                         responsivePriority: 2,
@@ -385,6 +429,223 @@
 
         });
 
-    </script>
+        // Detail Transaksi
+        document.addEventListener('click', function(e){
+            if(!e.target.classList.contains('btn-detail')) {
+                return;
+            }
 
+            const details = JSON.parse(
+                e.target.dataset.detail
+            );
+
+            let detailHtml = `
+                <table style="width:100%;border-collapse:collapse">
+                    <thead>
+                        <tr>
+                            <th style="text-align:left;padding:8px">Keterangan</th>
+                            <th style="text-align:right;padding:8px">Nominal</th>
+                        </tr>    
+                    </thead>
+                    <tbody>
+            `;
+
+            let total = 0;
+
+            details.forEach(item => {
+                total += parseInt(item.nominal);
+
+                detailHtml += `
+                    <tr>
+                        <td style="padding:8px;border-top:1px solid #eee">
+                            ${item.keterangan}
+                        </td>
+
+                        <td style="padding:8px;border-top:1px solid #eee;text-align:right">
+                            Rp ${new Intl.NumberFormat('id-ID').format(item.nominal)}
+                        </td>
+                    </tr>
+                `;
+            });
+
+            detailHtml += `
+                    </tbody>
+                </table>
+
+                <hr>
+
+                <div style="text-align:right;font-weight:bold;font-size:16px">
+                    Total :
+                    Rp ${new Intl.NumberFormat('id-ID').format(total)}
+                </div>
+            `;
+
+            Swal.fire({
+                title: e.target.dataset.nasabah,
+                width: 800,
+                html: `
+                    <div style="text-align:left;margin-bottom:15px">
+                        <b>Bank:</b> ${e.target.dataset.bank}<br>
+                        <b>Marketing:</b> ${e.target.dataset.marketing}<br>
+                        <b>Tanggal:</b> ${e.target.dataset.tanggal}<br>
+                        <b>Status:</b> ${e.target.dataset.status}
+                    </div>
+
+                    ${e.target.dataset.keteranganStatus
+                        ? `<div style="background:#fee2e2;padding:10px;border-radius:8px;margin-bottom:15px">
+                            <b>Keterangan Status:</b><br>
+                            ${e.target.dataset.keteranganStatus}
+                        </div>`
+                        : ''
+                    }
+
+                    ${detailHtml}
+                `,
+                confirmButtonText: 'Tutup'
+            });
+        });
+
+        document.addEventListener('click', function(e){
+            if(!e.target.classList.contains('btn-insentif')){
+                return;
+            }
+
+            const transaksiId = e.target.dataset.id;
+
+            const ao = e.target.dataset.ao ?? '';
+            const sp = e.target.dataset.sp ?? '';
+            const adk = e.target.dataset.adk ?? '';
+            const pinca = e.target.dataset.pinca ?? '';
+            const mpspb = e.target.dataset.mpspb ?? '';
+
+            Swal.fire({
+                title: 'Input / Edit Insentif',
+                width: 700,
+
+                html: `
+                    <div style="text-align:left">
+                        <label style="font-weight:600">Insentif AO</label>
+                        <div style="display:flex;margin-bottom:10px">
+                            <span style="padding:10px;background:#f3f4f6;border:1px solid #d1d5db;border-right:none;border-radius:6px 0 0 6px">
+                                Rp
+                            </span>
+                            <input id="ao"
+                                class="swal2-input rupiah"
+                                value="${ao}"
+                                style="margin:0;border-radius:0 6px 6px 0;">
+                        </div>
+
+                        <label style="font-weight:600">Insentif SP</label>
+                        <div style="display:flex;margin-bottom:10px">
+                            <span style="padding:10px;background:#f3f4f6;border:1px solid #d1d5db;border-right:none;border-radius:6px 0 0 6px">
+                                Rp
+                            </span>
+                            <input id="sp"
+                                class="swal2-input rupiah"
+                                value="${sp}"
+                                style="margin:0;border-radius:0 6px 6px 0;">
+                        </div>
+
+                        <label style="font-weight:600">Insentif ADK</label>
+                        <div style="display:flex;margin-bottom:10px">
+                            <span style="padding:10px;background:#f3f4f6;border:1px solid #d1d5db;border-right:none;border-radius:6px 0 0 6px">
+                                Rp
+                            </span>
+                            <input id="adk"
+                                class="swal2-input rupiah"
+                                value="${adk}"
+                                style="margin:0;border-radius:0 6px 6px 0;">
+                        </div>
+
+                        <label style="font-weight:600">Insentif PINCA</label>
+                        <div style="display:flex;margin-bottom:10px">
+                            <span style="padding:10px;background:#f3f4f6;border:1px solid #d1d5db;border-right:none;border-radius:6px 0 0 6px">
+                                Rp
+                            </span>
+                            <input id="pinca"
+                                class="swal2-input rupiah"
+                                value="${pinca}"
+                                style="margin:0;border-radius:0 6px 6px 0;">
+                        </div>
+
+                        <label style="font-weight:600">Insentif MP/SPB</label>
+                        <div style="display:flex;margin-bottom:10px">
+                            <span style="padding:10px;background:#f3f4f6;border:1px solid #d1d5db;border-right:none;border-radius:6px 0 0 6px">
+                                Rp
+                            </span>
+                            <input id="mpspb"
+                                class="swal2-input rupiah"
+                                value="${mpspb}"
+                                style="margin:0;border-radius:0 6px 6px 0;">
+                        </div>
+                    </div>
+                `,
+                didOpen: () => {
+                    document.querySelectorAll('.rupiah').forEach(input => {
+                        input.value = formatRupiah(input.value);
+                        input.addEventListener('input', function() {
+                            this.value = formatRupiah(this.value);
+                        });
+                    });
+                },
+                showCancelButton: true,
+                confirmButtonText: 'Simpan',
+
+                preConfirm: () => {
+                    return {
+                        ao: cleanNumber(document.getElementById('ao').value),
+                        sp: cleanNumber(document.getElementById('sp').value),
+                        adk: cleanNumber(document.getElementById('adk').value),
+                        pinca: cleanNumber(document.getElementById('pinca').value),
+                        mpspb: cleanNumber(document.getElementById('mpspb').value),
+                    };
+                }
+            }).then((result) => {
+                if(result.isConfirmed){
+                    $.ajax({
+                        url: '/transaksi/' + transaksiId + '/insentif',
+                        type: 'POST',
+                        data: {
+                            _token: '{{ csrf_token() }}',
+                            insentif_ao: result.value.ao,
+                            insentif_sp: result.value.sp,
+                            insentif_adk: result.value.adk,
+                            insentif_pinca: result.value.pinca,
+                            insentif_mp_spb: result.value.mpspb,
+                        },
+                        success: function(response){
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Berhasil',
+                                text: response.message
+                            }).then(() => {
+                                location.reload();
+                            });
+                        },
+                        error: function(xhr){
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal',
+                                text: 'Data insentif gagal disimpan'
+                            });
+                            console.log(xhr.responseText);
+                        }
+                    });
+                }
+            });
+        });
+
+        function formatRupiah(value)
+        {
+            value  = value.toString().replace(/\D/g, '');
+            return value.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+        }
+
+        function cleanNumber(value)
+        {
+            return value.replace(/\./g, '');
+        }
+
+        </script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </x-app-layout>

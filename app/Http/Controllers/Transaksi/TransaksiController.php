@@ -57,6 +57,8 @@ class TransaksiController extends Controller
             'nominal.*'         => 'required|numeric|min:1',
         ]);
 
+        // dd($validated);
+
         DB::transaction(function () use ($validated) {
             $transaksi = TransaksiNasabah::create([
                 'nama_nasabah'      => $validated['nama_nasabah'],
@@ -94,5 +96,31 @@ class TransaksiController extends Controller
             ]);
 
         return response()->json($branches);
+    }
+
+    public function storeInsentif(Request $request, $id)
+    {
+        $validated = $request->validate([
+            'insentif_ao'       => 'nullable|numeric|min:0',
+            'insentif_sp'       => 'nullable|numeric|min:0',
+            'insentif_adk'      => 'nullable|numeric|min:0',
+            'insentif_pinca'    => 'nullable|numeric|min:0',
+            'insentif_mp_spb'   => 'nullable|numeric|min:0',
+        ]);
+
+        $transaksi = TransaksiNasabah::findOrFail($id);
+
+        $transaksi->update([
+            'insentif_ao'       => $validated['insentif_ao'] ?? 0,
+            'insentif_sp'       => $validated['insentif_sp'] ?? 0,
+            'insentif_adk'      => $validated['insentif_adk'] ?? 0,
+            'insentif_pinca'    => $validated['insentif_pinca'] ?? 0,
+            'insentif_mp_spb'   => $validated['insentif_mp_spb'] ?? 0,
+        ]);
+
+        return response()->json([
+            'success'   => true,
+            'message'   => 'Insentif berhasil disimpan'
+        ]);
     }
 }

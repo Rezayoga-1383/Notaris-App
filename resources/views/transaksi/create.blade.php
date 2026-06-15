@@ -239,7 +239,7 @@
                     <div class="tf-card-body">
 
                         <div>
-                            <label for="nasabah_id" class="tf-label">
+                            <label for="nama_nasabah" class="tf-label">
                                 Nama Nasabah <span class="tf-req">*</span>
                             </label>
                             <input type="text" id="nama_nasabah" name="nama_nasabah" value="{{ old('nama_nasabah') }}" placeholder="Masukkan Nama Nasabah" class="tf-control">
@@ -335,7 +335,7 @@
                                 Nama Marketing
                             </label>
 
-                            <select name="user_id" class="tf-control" required>
+                            <select name="user_id" id="user_id" class="tf-control" required>
                                 <option value="">-- Pilih Marketing --</option>
 
                                 @foreach ($marketings as $marketing)
@@ -372,7 +372,7 @@
                                 Keterangan Belum <span class="tf-req">*</span>
                             </label>
 
-                            <textarea name="keterangan_status" id="keterangan_status" rows="3" class="tf-control" placeholder="Masukkan keterangan transaksi belum selesai"></textarea>
+                            <textarea name="keterangan_status" status" rows="3" class="tf-control" placeholder="Masukkan keterangan transaksi belum selesai"></textarea>
                         </div>
                     </div>
                 </div>

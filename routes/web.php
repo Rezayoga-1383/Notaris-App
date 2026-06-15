@@ -39,6 +39,9 @@ Route::middleware('auth')->group(function () {
     Route::post('/transaksi/store', [TransaksiController::class, 'store'])->name('transaksi.store');
 
     Route::get('/transaksi', [TransaksiController::class, 'create'])->name('transaksi');
+
+    // Insentif Route
+    Route::post('/transaksi/{id}/insentif', [TransaksiController::class, 'storeInsentif'])->name('transaksi.insentif');
 });
 
 require __DIR__.'/auth.php';

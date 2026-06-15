@@ -68,4 +68,14 @@ class TransaksiNasabah extends Model
             'transaksi_nasabah_id'
         );
     }
+
+    public function getSudahInsentifAttribute()
+    {
+        return
+        $this->insentif_ao !== null ||
+        $this->insentif_sp !== null ||
+        $this->insentif_adk !== null ||
+        $this->insentif_pinca !== null ||
+        $this->insentif_mp_spb !== null;
+    }
 }

@@ -204,8 +204,8 @@
                 flex-direction:column;
             }
 
-            .btn-detail,
-            .btn-edit{
+            .btn-edit,
+            .btn-delete{
                 width:100%;
                 text-align:center;
             }
@@ -213,6 +213,18 @@
             table.dataTable td,
             table.dataTable th{
                 white-space:normal;
+            }
+
+            .btn-delete{
+                background:#ef4444;
+                color:white;
+                padding:6px 12px;
+                border-radius:8px;
+                border:none;
+                cursor:pointer;
+            }
+            .btn-delete:hover{
+                background:#dc2626;
             }
         }
 
@@ -269,13 +281,12 @@
                                     <div class="aksi-mobile">
 
                                         <a href="#"
-                                            class="btn-detail">
-                                            Detail
-                                        </a>
-
-                                        <a href="#"
                                             class="btn-edit">
                                             Edit
+                                        </a>
+
+                                        <a href="#" class="btn-delete">
+                                            Hapus
                                         </a>
 
                                     </div>
