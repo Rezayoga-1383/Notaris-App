@@ -1,4 +1,16 @@
 <x-guest-layout>
+    <style>
+        select {
+            background-color: #111827 !important;
+            color: #f9fafb !important;
+            border-color: #374151 !important;
+        }
+
+        select option {
+            background-color: #111827;
+            color: #f9fafb;
+        }
+    </style>
     <form method="POST" action="{{ route('register') }}">
         @csrf
 
@@ -7,6 +19,28 @@
             <x-input-label for="name" :value="__('Name')" />
             <x-text-input id="name" class="block mt-1 w-full" type="text" name="name" :value="old('name')" required autofocus autocomplete="name" />
             <x-input-error :messages="$errors->get('name')" class="mt-2" />
+        </div>
+
+        {{-- Role --}}
+        <div class="mt-4">
+            <x-input-label for="role" value="Role" />
+
+            <select
+                id="role"
+                name="role"
+                required
+                class="block mt-1 w-full rounded-md border-gray-700 bg-gray-900 text-gray-100 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+            >
+                <option value="">-- Pilih Role --</option>
+                <option value="Admin" {{ old('role') == 'Admin' ? 'selected' : '' }}>
+                    Admin
+                </option>
+                <option value="Karyawan" {{ old('role') == 'Karyawan' ? 'selected' : '' }}>
+                    Karyawan
+                </option>
+            </select>
+
+            <x-input-error :messages="$errors->get('role')" class="mt-2" />
         </div>
 
         <!-- Email Address -->
