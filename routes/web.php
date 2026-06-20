@@ -7,7 +7,7 @@ use App\Http\Controllers\Transaksi\TransaksiController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return view('auth.register');
+    return redirect()->route('register');
 });
 
 Route::get('/dashboard', function () {
